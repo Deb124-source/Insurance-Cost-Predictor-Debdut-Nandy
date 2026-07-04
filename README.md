@@ -7,7 +7,7 @@ https://insurance-cost-predictor-debdut-nandy.streamlit.app/
 
 ## App UI
 
-<img src="Screenshot 2026-07-04 085041.png" width="">
+<img src="Screenshot 2026-07-04 085041.png" width="700">
 
 
 ## Features
@@ -38,6 +38,10 @@ The project uses the **Medical Cost Personal Dataset**, which includes the follo
 * Smoking Status
 * Region
 * Insurance Charges (Target)
+
+## Power BI Dashboard 
+
+<img src="dashboard_image" width="700">
 
 ## Machine Learning Model
 
