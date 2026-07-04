@@ -41,7 +41,7 @@ The project uses the **Medical Cost Personal Dataset**, which includes the follo
 
 ## Power BI Dashboard 
 
-<img src="dashboard_image" width="700">
+<img src="dashboard_image.png" width="700">
 
 ## Machine Learning Model
 
