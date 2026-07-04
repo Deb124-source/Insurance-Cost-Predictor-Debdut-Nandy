@@ -1,6 +1,6 @@
 # ============================================================
-# Medical Insurance Cost Prediction App
-# Developed by: Debdut Nandy
+# Medical Insurance Cost Prediction
+# Developed by Debdut Nandy
 # ============================================================
 
 import streamlit as st
@@ -22,10 +22,14 @@ st.set_page_config(
 # ============================================================
 
 @st.cache_resource
-def load_model():
-    return joblib.load("insurance_model.pkl")
+def load_files():
 
-model = load_model()
+    model = joblib.load("insurance_model.pkl")
+    columns = joblib.load("model_columns.pkl")
+
+    return model, columns
+
+model, model_columns = load_files()
 
 # ============================================================
 # Custom CSS
@@ -35,50 +39,51 @@ st.markdown("""
 <style>
 
 .main{
-    background:#f8f9fa;
+    background:#F5F7FA;
 }
 
-h1{
-    color:#0f172a;
-    text-align:center;
+.title{
+    font-size:42px;
+    font-weight:bold;
+    color:#1E3A8A;
 }
 
-.card{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0px 0px 12px rgba(0,0,0,0.08);
+.subtitle{
+    color:gray;
+    font-size:18px;
 }
 
-.prediction{
+.prediction-box{
+    background:#E8F5E9;
     padding:25px;
     border-radius:15px;
-    background:#e8f5e9;
     border-left:8px solid green;
-    font-size:22px;
-    font-weight:bold;
 }
 
 .footer{
     text-align:center;
     color:gray;
-    margin-top:50px;
+    margin-top:40px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# Title
+# Header
 # ============================================================
-
-st.title("🏥 Medical Insurance Cost Prediction")
 
 st.markdown(
 """
-Predict an individual's **estimated medical insurance charges**
-using a trained **Random Forest Regression** model.
-"""
+<div class='title'>
+🏥 Medical Insurance Cost Prediction
+</div>
+
+<div class='subtitle'>
+Predict Annual Medical Insurance Charges using Machine Learning
+</div>
+""",
+unsafe_allow_html=True
 )
 
 st.divider()
@@ -93,18 +98,16 @@ st.sidebar.info(
 """
 Medical Insurance Cost Prediction
 
-Machine Learning Model:
-Random Forest Regressor
+Model Used:
 
-Enter customer information and click
-Predict Insurance Cost.
+✅ Random Forest Regressor
+
+Enter the customer details and click Predict.
 """
 )
 
-st.sidebar.success("Model Loaded Successfully")
-
 # ============================================================
-# Input Form
+# Input Fields
 # ============================================================
 
 left, right = st.columns(2)
@@ -113,14 +116,17 @@ with left:
 
     age = st.slider(
         "Age",
-        min_value=18,
-        max_value=64,
-        value=30
+        18,
+        64,
+        25
     )
 
     sex = st.selectbox(
         "Gender",
-        ["male", "female"]
+        [
+            "male",
+            "female"
+        ]
     )
 
     bmi = st.number_input(
@@ -134,13 +140,16 @@ with left:
 with right:
 
     children = st.selectbox(
-        "Number of Children",
+        "Children",
         [0,1,2,3,4,5]
     )
 
     smoker = st.selectbox(
         "Smoker",
-        ["yes","no"]
+        [
+            "yes",
+            "no"
+        ]
     )
 
     region = st.selectbox(
@@ -166,29 +175,58 @@ predict = st.button(
 
 if predict:
 
-    input_data = pd.DataFrame({
-        "age": [age],
-        "sex": [sex],
-        "bmi": [bmi],
-        "children": [children],
-        "smoker": [smoker],
-        "region": [region]
+    # -----------------------------------------
+    # Create Input DataFrame
+    # -----------------------------------------
+
+    input_df = pd.DataFrame({
+
+        "age":[age],
+        "bmi":[bmi],
+        "children":[children],
+
+        "sex_male":[1 if sex=="male" else 0],
+
+        "smoker_yes":[1 if smoker=="yes" else 0],
+
+        "region_northwest":[1 if region=="northwest" else 0],
+        "region_southeast":[1 if region=="southeast" else 0],
+        "region_southwest":[1 if region=="southwest" else 0]
+
     })
 
-    prediction = model.predict(input_data)[0]
+    # -----------------------------------------
+    # Match Training Columns
+    # -----------------------------------------
+
+    input_df = input_df.reindex(
+        columns=model_columns,
+        fill_value=0
+    )
+
+    # -----------------------------------------
+    # Prediction
+    # -----------------------------------------
+
+    prediction = model.predict(input_df)[0]
+
+    # -----------------------------------------
+    # Result
+    # -----------------------------------------
 
     st.success("Prediction Completed Successfully!")
 
-    st.markdown("## Estimated Medical Insurance Cost:")
+    st.markdown("## 💰 Estimated Insurance Cost")
 
     st.markdown(
         f"""
-        <div class="prediction">
-        Estimated Annual Insurance Charge<br><br>
+        <div class="prediction-box">
 
-        <span style="font-size:40px;">
+        <h1 style="color:green;">
         ${prediction:,.2f}
-        </span>
+        </h1>
+
+        Estimated Annual Medical Insurance Charges
 
         </div>
         """,
@@ -197,39 +235,56 @@ if predict:
 
     st.write("")
 
-    st.markdown("### Customer Details")
+    # -----------------------------------------
+    # Customer Summary
+    # -----------------------------------------
 
-    col1, col2, col3 = st.columns(3)
+    st.subheader("Customer Summary")
 
-    with col1:
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
         st.metric("Age", age)
         st.metric("Gender", sex.title())
 
-    with col2:
-        st.metric("BMI", round(bmi, 2))
+    with c2:
+        st.metric("BMI", round(bmi,1))
         st.metric("Children", children)
 
-    with col3:
+    with c3:
         st.metric("Smoker", smoker.title())
         st.metric("Region", region.title())
 
     st.divider()
 
-    st.markdown("### Interpretation")
+    # -----------------------------------------
+    # Health Insights
+    # -----------------------------------------
+
+    st.subheader("Health Insights")
 
     if smoker == "yes":
-        st.warning(
-            "Smoking significantly increases predicted insurance costs."
+
+        st.error(
+            "Smoking is one of the strongest factors contributing to higher medical insurance charges."
         )
 
     elif bmi >= 30:
+
         st.warning(
-            "Higher BMI is associated with increased insurance costs."
+            "Your BMI falls in the obese range, which may increase expected medical costs."
+        )
+
+    elif bmi >= 25:
+
+        st.warning(
+            "Your BMI is above the normal range. Maintaining a healthy BMI can help reduce long-term health risks."
         )
 
     else:
-        st.info(
-            "Based on the provided information, the predicted insurance charge is shown above."
+
+        st.success(
+            "Your BMI is within the healthy range based on the provided information."
         )
 
 # ============================================================
@@ -239,11 +294,16 @@ if predict:
 st.markdown("---")
 
 st.markdown(
-    """
-    <div class='footer'>
-        Developed by <b>Debdut Nandy</b><br>
-        Medical Insurance Cost Prediction using Machine Learning
-    </div>
-    """,
-    unsafe_allow_html=True
+"""
+<div class="footer">
+
+Developed by <b>Debdut Nandy</b>
+
+<br>
+
+Medical Insurance Cost Prediction using Machine Learning
+
+</div>
+""",
+unsafe_allow_html=True
 )
