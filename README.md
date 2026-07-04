@@ -79,6 +79,9 @@ Medical-Insurance-Cost-Predictor/
 ├── requirements.txt
 ├── README.md
 └── insurance.csv
+├── dashboard_image.png
+├── app ui screenshot
+├── power bi dashboard
 ```
 
 ## Author
