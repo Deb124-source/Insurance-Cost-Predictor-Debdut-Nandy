@@ -24,7 +24,7 @@ st.set_page_config(
 @st.cache_resource
 def load_files():
 
-    model = joblib.load("insurance_model.pkl")
+    model = joblib.load("insurance_model (1).pkl")
     columns = joblib.load("model_columns.pkl")
 
     return model, columns
